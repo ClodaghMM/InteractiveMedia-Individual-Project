@@ -1,66 +1,78 @@
-//minim class and features
-//beads class and resources
 
-//need to achieve the following steps. 
-//get audio in
-//record it
-//output it. 
+//LIBRARIES
+import beads.*;
 
-import ddf.minim.*;
-import ddf.minim.ugens.*;
 
 //VARIABLES
-AudioInput in;
-AudioRecorder r;
-boolean recorded;
-Minim minim;
-FilePlayer fp;
+RecordToSample recordToSample;
+AudioContext ac;
+AudioContext acm;
+Gain g = new Gain(1, 2);
+SamplePlayer player;
+Boolean recorded;
+String audio;
+
 
 void setup() {
-  //set up the recording functionality. 
   
-  size(512, 200);
-  minim = new Minim(this);
-  in = minim.getLineIn(Minim.STEREO, 2048);
-  r = minim.createRecorder(in, "userInput.mp3");
-  
+  //setting up the UI
+  size(500, 800, P3D);
+  background(255);
   textFont(createFont("Arial", 12));
+  fill(#F2ABAB);
+  translate(width/2, height/2);
+  //noStroke();
+  pushMatrix();
+  rotate(PI);
+  sphere(175);
+  popMatrix();
+  translate(0, 0);
+
+  //setting up beads recording 
+  ac = AudioContext.getDefaultContext();
+  Sample outputSample = new Sample(5000); //sample to store in memory
+  recordToSample = new RecordToSample(outputSample, RecordToSample.Mode.FINITE);
+  recordToSample.addInput(ac.getAudioInput());
+  ac.out.addDependent(recordToSample);
+  recorded = false;
+
 }
 
 void draw() {
-  background(0);
-  
-  if(r.isRecording()) {
-    text("Now recording, press the r key to stop recording.", 5, 15);
-  }
   
   if(!recorded)
-  {
+    {
     text("Press r key to start recording.", 5, 15);
+    }
+    
+  if(recorded == false && key == 'r')
+  {
+    text("Now recording, click on the mouse to stop recording.", 5, 25);
+    ac.start();
   }
   
-   else if ( fp == null )
+  if(recorded == true & key == 'p')
   {
-    text("Press the s key to save the recording to disk and play it back in the sketch.", 5, 15);
+   audio = "/Users/cmm/Documents/University/Year 4 University/Interactive Media/Assignment 3 Repo/InteractiveMedia-Individual-Project/A3_Audio/test.wav";
+   acm = AudioContext.getDefaultContext();
+   player = new SamplePlayer(SampleManager.sample(audio));
+   g.addInput(player);
+   acm.out.addInput(g);
+   acm.start();
   }
+  
 }
 
 
-void keyReleased() {
-    if ( !r && key == 'r' ) 
-  {
-    if ( r.isRecording() ) 
-    {
-      r.endRecord();
-      r = true;
-    }
-    else 
-    {
-      recorder.beginRecord();
-    }
+void mousePressed() {
+  recordToSample.clip();//stop recording
+  try {//write to sketch path
+    recordToSample.getSample().write(sketchPath("test.wav"), AudioFileType.WAV);
+    text("Recording Saved.", 5, 25);
+    recorded = true;
+    ac.stop();
   }
-  if ( fp == null && recorded && key == 's' )
-  {
-    fp = new FilePlayer( r.save() );
-}
+  catch (IOException e) {
+    e.printStackTrace();
+  }
 }
