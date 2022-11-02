@@ -1,14 +1,15 @@
 
-////VARIABLES
-//Gain g = new Gain(1, 2);
-//SamplePlayer player;
-//AudioContext acm;
-//Envelope rate = new Envelope(4);
-//String audio;
+Envelope Pitch;
+Envelope Frequency;
+Envelope Rate;
+Envelope Grain;
 
-////METHODS
-//void playManipulatedAudio() {
-    
-//    println(acm.isRunning());
-
-//}
+void audioManipulation() {
+   //enable combination of three keys 
+   //enable cochlear implant mode (sets pre-determined values). 
+   
+   
+   
+   //if cochlear implant mode avaliable
+   //test those settings
+}
