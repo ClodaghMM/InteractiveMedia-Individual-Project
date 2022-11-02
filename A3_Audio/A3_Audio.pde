@@ -1,6 +1,6 @@
 //LIBRARIES
 import beads.*;
-
+import java.util.*;
 
 //VARIABLES
 RecordToSample recordToSample;
@@ -8,10 +8,14 @@ AudioContext ac;
 Gain g = new Gain(1, 2);
 SamplePlayer player;
 Boolean recorded;
+Boolean manipulate = false;
 String audio;
 float rotate = 0;
-char[] inputs;
+ArrayList<String> inputs = new ArrayList<String>();
+Hashtable<String, String> envelopeVals = new Hashtable<>();
 
+String userInput;
+String envelopeInput; 
 
 void setup() {
   
@@ -43,7 +47,11 @@ void draw() {
     ac.start();
   }
   
-  if(recorded == true & key == 'p')
+  //if(manipulate == true) {
+  //  synthesiser();
+  //}
+   
+  if(recorded == true && manipulate == true & key == 'p')
   {
    ac.start();
   } 
@@ -56,37 +64,46 @@ void mousePressed() {
     text("Recording Saved.", 5, 35);
     recorded = true;
     ac.stop();
-    
-    synthesiser();
-    //play();
-    
+    manipulate = true;
   }
   catch (IOException e) {
     e.printStackTrace();
   }
+  
+  if(manipulate = true) 
+  {
+    synthesiser();
+  }
 }
 
-void play() {
-  audio = "/Users/cmm/Documents/University/Year 4 University/Interactive Media/Assignment 3 Repo/InteractiveMedia-Individual-Project/A3_Audio/test.wav";
-  player = new SamplePlayer(SampleManager.sample(audio));
-  ac.out.addInput(g);
-  g.addInput(player);
-}
+//void play() {
+//  audio = "/Users/cmm/Documents/University/Year 4 University/Interactive Media/Assignment 3 Repo/InteractiveMedia-Individual-Project/A3_Audio/test.wav";
+//  player = new SamplePlayer(SampleManager.sample(audio));
+//  ac.out.addInput(g);
+//  g.addInput(player);
+//}
 
 void synthesiser() {
   background(255);
   text("How would you like to modfify the sound?", 5, 15); 
-  if(key == 's')
-  {
-    inputs.add('s');
-  }
+  text("Following options are: (Press e to continue)", 5, 25);
+  text("r for rate", 5, 35);
   
-  //ask user for input and store in array.
-  //what keys do we want to use? 
-  // = rate
-  // pitch
-  //overlap with frequency
-  //cochlear mode - defaults to a bunch of keys
+  if(key == 's') {
+    userInput = "s";
+      inputs.add(userInput);
+      text("How do you want to modify the rate?", 5, 45);
+  }
+   if(key == 'm' & userInput == "s") {
+     text("Medium value for rate", 5, 55);
+      envelopeInput = "m";
+      println("Envelope Input added");
+      envelopeVals.put(userInput, envelopeInput);
+    }
+   if (key == 'g') {
+    println("manipulating audio");
+    audioManipulation(inputs,envelopeVals);
+  }   
 }
 
 //void createSphere() {
