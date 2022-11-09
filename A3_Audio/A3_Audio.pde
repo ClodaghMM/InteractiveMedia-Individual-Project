@@ -7,6 +7,8 @@ RecordToSample recordToSample;
 AudioContext ac;
 Gain g = new Gain(1, 2);
 SamplePlayer player;
+PowerSpectrum ps;
+
 Boolean recorded;
 Boolean manipulate = false;
 Boolean play;
@@ -25,6 +27,7 @@ String state;
 String audio;
 float n = cos(frameCount*0.01)*300;
 ArrayList<String> inputs = new ArrayList<String>();
+
 Hashtable<String, String> envelopeVals = new Hashtable<>();
 Hashtable<String, String> envelopeKeys = new Hashtable<>();
 
@@ -59,7 +62,7 @@ void setup() {
   
   //setting up beads recording. Using Kurt's code from Teams  
   ac = AudioContext.getDefaultContext();
-  ac_coch = AudioContext.getDefaultContext();
+  ac_wp = AudioContext.getDefaultContext();
   Sample outputSample = new Sample(5000); //sample to store in memory
   recordToSample = new RecordToSample(outputSample, RecordToSample.Mode.FINITE);
   recordToSample.addInput(ac.getAudioInput());
@@ -73,54 +76,82 @@ void setup() {
 }
 
 void draw() {
+  
+  
   fill(sphereColor);
   float n = cos(frameCount*0.01)*300;
   ellipse(250, 250, n, n);
   fill(255);
   
    
-  if(!recorded && recordedStart == false)
-    {
-    text("Press r key to start recording.", 40, 550);
-    recordedStart = true;
-    }
+  //if(!recorded && recordedStart == false)
+  //  {
+  //  text("Press r key to start recording.", 40, 550);
+  //  recordedStart = true;
+  //  }
     
-  if(recorded == false && key == 'r' && start == false)
-  {
-    text("Now recording, click on the mouse to stop recording.", 40, 565);
-    ac.start();
-    start = true;
-  }
+  //if(recorded == false && key == 'r' && start == false)
+  //{
+  //  text("Now recording, click on the mouse to stop recording.", 40, 565);
+  //  ac.start();
+  //  start = true;
+  //}
    
   if(recorded == true && manipulate == true & key == 'p')
   {
-    if(inputs.contains("f")){
+    //refill the square 
+    fill(#555050); 
+    rect(30, 30, width-50, height-75);
+    visualise();
+    //visualising the output. Not the best at the moment. 
+  //  stroke(fore);
+  //  if(ps == null) return;
+  //  float[] features = ps.getFeatures();
+  //  if(features != null) {
+  //  //scan across the pixels
+  //  for(int i = 0; i < width; i++) { //for(int i = 0; i < width; i++) { 
+  //    int featureIndex = i * features.length / width;
+  //    int vOffset = height - 1 - Math.min((int)(features[featureIndex] * height), height - 1);
+  //    line(i,height,i,vOffset);
+  //  }
+  //}
+    
+    if(inputs.contains("f") || inputs.contains("c")){ 
       ac_wp.start();
       ac.start();
     }
-    else {
+    
+    else{
     ac.start();
     }
+  }
+  
+  if(key == 'x')
+  {
+    exit();
   }
 }
 
 void mousePressed() {
-  recordToSample.clip();//stop recording
+  manipulate = true;
+  recorded = true;
   
-  if(recorded == false) {
-  try {//write to sketch path
-    recordToSample.getSample().write(sketchPath("test.wav"), AudioFileType.WAV);
-    text("Recording Saved.", 40, 580);
-    recorded = true;
-    ac.stop();
-    manipulate = true;
-    changeColor("r");
+  //recordToSample.clip();//stop recording
   
-  }
-  catch (IOException e) {
-    e.printStackTrace();
-    }  
-  }
+  //if(recorded == false) {
+  //try {//write to sketch path
+  //  recordToSample.getSample().write(sketchPath("test.wav"), AudioFileType.WAV);
+  //  text("Recording Saved.", 40, 580);
+  //  recorded = true;
+  //  ac.stop();
+  //  manipulate = true;
+  //  changeColor("r");
+  
+  //}
+  //catch (IOException e) {
+  //  e.printStackTrace();
+  //  }  
+  //}
   
   if(manipulate = true) 
   {
@@ -144,7 +175,7 @@ void synthesiser() {
   if(key == 's') {
     userInput = "s";
       inputs.add(userInput);
-      text("How do you want to modify the rate?", 40, 670);
+      text("How do you want to modify the rate? (l, m, h)", 40, 670);
   }
   
   if(key == 'l' & userInput == "s" && rateModified == false) {
@@ -177,7 +208,7 @@ void synthesiser() {
    if(key == 't') {
     userInput = "t";
       inputs.add(userInput);
-      text("How do you want to modify the pitch?", 40, 685);
+      text("How do you want to modify the pitch? (l, m, h)", 40, 685);
   }
   if(key == 'l' & userInput == "t" && pitchModified == false) {
       envelopeInput = "l";
@@ -209,14 +240,13 @@ void synthesiser() {
   
   if(key == 'f') {
     userInput = "f";
-    text("This will add an additional tone to the wave", 5, 690);
+    text("How do you want to modify the frequency? (l, m, h)", 40, 700);
     inputs.add(userInput);
     envelopeVals.put(userInput, "l");
   }
   
   if(key == 'l' & userInput == "f") {
       envelopeInput = "l";
-      println("Envelope Input added");
       envelopeVals.put(userInput, envelopeInput);
       changeColor(userInput);
       showChoice(envelopeInput);
@@ -224,7 +254,6 @@ void synthesiser() {
     
     if(key == 'm' & userInput == "f") {
       envelopeInput = "m";
-      println("Envelope Input added");
       envelopeVals.put(userInput, envelopeInput);
       changeColor(userInput);
       showChoice(envelopeInput);
@@ -232,22 +261,29 @@ void synthesiser() {
     
     if(key == 'h' & userInput == "f") {
       envelopeInput = "h";
-      println("Envelope Input added");
       envelopeVals.put(userInput, envelopeInput);
       changeColor(userInput);
       showChoice(envelopeInput);
   }
     
     if(key == 'c') {
-      inputs.clear();
-      envelopeVals.clear();
-      userInput = "c";
+      userInput = "t";
       inputs.add(userInput);
+      envelopeVals.put(userInput, "h");
+      userInput = "f";
+      inputs.add(userInput);
+      envelopeVals.put(userInput, "h");
+      userInput = "f";
+      inputs.add(userInput);
+      envelopeVals.put(userInput, "l");
+      userInput = "p";
+      inputs.add(userInput);
+      envelopeVals.put(userInput, "m");
       text("Cochlear Mode selected. Please press g", 40, 670);
     }
     
    if (key == 'g') {
-    text("Processing Selections. Press p to play", 40, 705);
+    text("Processing Selections. Press p to play", 40, 715);
     audioManipulation(inputs,envelopeVals);
     changeColor("g");
   }   
@@ -255,27 +291,26 @@ void synthesiser() {
 
 void showChoice(String envelopeInput) {
   String choice;
-  
-  System.out.println(envelopeKeys);
-  
+    
   for(int i = 0; i < inputs.size(); i++)
   {
   choice = inputs.get(i);
-  print(choice);
+  println(choice);
+  print(envelopeKeys);
     
   switch(choice) 
   
   {
     case "t":
-    text("Pitch Modified: " + " " + envelopeKeys.get(envelopeInput), 300, 700);                                
+    text("Pitch Modified: " + " " + envelopeKeys.get(envelopeInput), 300, 650);                                
     break;
     
     case "s":
-    text("Rate Modified: " + " " + envelopeKeys.get(envelopeInput), 300, 715);
+    text("Rate Modified: " + " " + envelopeKeys.get(envelopeInput), 300, 675);
     break;
     
     case "f":
-    text("Frequency Modified" + envelopeKeys.get(envelopeInput), 300, 730);
+    text("Frequency Modified: " + " " + envelopeKeys.get(envelopeInput), 300, 690);
     break;
   }
   }
@@ -310,3 +345,70 @@ void changeColor(String state) {
     break;
   }
 }
+
+ void visualise() {
+   for(int i = 0; i < inputs.size(); i++) {
+     Input = inputs.get(i);
+     
+      switch(Input) {
+       
+        case "s": 
+        fill(#F0822E);
+       level = envelopeVals.get(userInput);
+        
+        if (level.equals("l"))
+      {
+        square(random(10, 100), random(10, 100), 50);
+      }
+
+      if (level.equals("m")) {    
+         square(random(100, 200), random(100, 200), 50);
+      } 
+      else if (level.equals("h")) {
+         square(random(200, 300), random(200, 300), 50);
+      }
+         break;
+        
+        case "t": 
+        fill(#A4CEAC);
+        level = envelopeVals.get(userInput);
+
+          if (level.equals("l"))
+        {
+           circle(random(10, 100), random(10, 100), 50);
+        }
+        
+        if (level.equals("m")) {
+          circle(random(100, 200), random(100, 200), 50);
+        } 
+        
+        else if (level.equals("h")) {
+          circle(random(200, 300), random(200, 300), 50);
+        }
+
+        break;
+        
+        case "f": 
+        fill(#9AB4EA);
+        level = envelopeVals.get(userInput);
+
+          if (level.equals("l"))
+        {
+          triangle(random(10, 100), random(10, 100), random(10, 100), random(10, 100), random(10, 100), random(10, 100)); 
+        }
+  
+        if (level.equals("m")) {
+          triangle(random(100, 200), random(100, 200), random(100, 200), random(100, 200), random(100, 200), random(100, 200));
+        } 
+        
+        else if (level.equals("h")) {
+          triangle(random(200, 300), random(200, 300), random(200, 300), random(200, 300), random(200, 300), random(200, 300));
+        }
+        
+        break;
+        
+     
+   }
+ 
+ }
+ }
